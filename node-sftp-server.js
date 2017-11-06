@@ -80,9 +80,19 @@ var DirectoryEmitter = (function(superClass) {
     if (typeof attrs === 'undefined') {
       attrs = {};
     }
+
+    var shortname = name.toString();
+    var longname = name.toString();
+    if(typeof name === 'object') {
+      shortname = name.filename.toString();
+      longname = name.longname.toString();
+    }
+
+    console.log(name);
+
     this.stopped = this.sftpStream.name(this.req, {
-      filename: name.toString(),
-      longname: name.toString(),
+      filename: shortname.toString(),
+      longname: longname.toString(),
       attrs: attrs
     });
     if (!this.stopped && !this.done) {
@@ -244,6 +254,7 @@ var SFTPSession = (function(superClass) {
     var event, fn, i, len, ref;
     this.sftpStream = sftpStream1;
     this.max_filehandle = 0;
+    console.log('session started');
     this.handles = {};
     ref = this.constructor.Events;
     fn = (function(_this) {
@@ -357,6 +368,7 @@ var SFTPSession = (function(superClass) {
         return tmp.file(options, function (err, tmpPath, fd) {
           if (err) throw err;
           handle = this.fetchhandle();
+          console.log('create tmp handle', handle.toString(), pathname, tmpPath, fd);
           this.handles[handle] = {
             mode: "READ",
             path: pathname,
@@ -364,8 +376,12 @@ var SFTPSession = (function(superClass) {
             tmpPath: tmpPath,
             tmpFile: fd
           };
-          var writestream = fs.createWriteStream(tmpPath);
+            console.log('start');
+
+            var writestream = fs.createWriteStream(tmpPath);
+            
           writestream.on("finish", function () {
+            console.log('finish', handle.toString());
             this.handles[handle].finished = true;
           }.bind(this));
           this.emit("readfile", pathname, writestream);
